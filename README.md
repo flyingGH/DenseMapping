@@ -1,10 +1,13 @@
 # <center>DenseMapping</center>
+
 使用REMODE数据集进行单目相机的稠密建图。该项目会涉及以下技术
+
 - 极线搜索和NCC块匹配技术
 - 建立几何不确定性模型
 - 基于高斯分布的深度滤波技术
 
 ## 1. 数据集格式解析
+
 ```shell
 test_data
 ├── depthmaps                            # 图片深度信息文件夹
@@ -26,10 +29,12 @@ test_data
 │   └── scene_200.png
 └── README
 ```
+
 - 首先，感谢UZH开源的[REMODE数据集](https://download.ifi.uzh.ch/rpg/web/datasets/remode_test_data.zip)
 - 在此项目中我将`first_200_frames_traj_over_table_input_sequence.txt`重命名为`images_pose.txt`
 
 ## 2. 极线搜索和块匹配技术
+
 <div align="center">
 <img src="./figures/polarSearch.png" alt="polarSearch.png" title="对极几何" width=70%>
 <p>图2.1 对极几何</p>
@@ -80,12 +85,34 @@ $$
 
 ## 3. 几何不确定性模型
 
+<div align="center">
+<img src="./figures/disturbance_analysis.png" width=70% title="不确定性分析模型" alt="disturbance_analysis.png">
+</div>
+
+$$
+\vec{a} = \vec{p} - \vec{t}
+$$
+
+$$
+\alpha = \arccos<\vec{p}, \vec{t}>
+$$
+
+$$
+\beta' = \arccos<O_2p_2', -\vec{t}>
+$$
+
+$$
+\gamma = \pi - \alpha - \beta'
+$$
+
+$$
+||\vec{p'}|| = ||\vec{t}|| \frac{\sin\beta'}{\sin\gamma}
+$$
+
+$$
+\sigma_{obs} = ||\vec{p}|| - ||\vec{p'}||
+$$
 
 ## 4. 基于高斯分布的深度滤波器
-
-
-
-
-
 
 
