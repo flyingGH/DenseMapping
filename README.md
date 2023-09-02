@@ -5,6 +5,17 @@
 - 极线搜索和NCC块匹配技术
 - 建立几何不确定性模型
 - 基于高斯分布的深度滤波技术
+- 三角测量技术
+
+涉及到的项目技术路线如下所示：
+
+<div align="center">
+<img src="./figures/flow_chart.png" width=70% title="技术路线流程图"/>
+</div>
+
+<div align="center">
+<img src="./figures/flow_chart.png" width=70% title="C++项目路线图"/>
+</div>
 
 ## 1. 数据集格式解析
 
@@ -37,7 +48,6 @@ test_data
 
 <div align="center">
 <img src="./figures/polarSearch.png" alt="polarSearch.png" title="对极几何" width=70%>
-<p>图2.1 对极几何</p>
 </div>
 
 ### 2.1 极线搜索法
@@ -90,10 +100,6 @@ $$
 </div>
 
 $$
-\vec{a} = \vec{p} - \vec{t}
-$$
-
-$$
 \alpha = \arccos<\vec{p}, \vec{t}>
 $$
 
@@ -113,6 +119,32 @@ $$
 \sigma_{obs} = ||\vec{p}|| - ||\vec{p'}||
 $$
 
-## 4. 基于高斯分布的深度滤波器
+- 向量$O_2p_2$与归一化坐标系上的向量$O_2P_2$在相机坐标系下的方向是一致的
+- 可以使用向量$O_2P_2$代替向量$O_2p_2$对$\beta'$进行求解
+- 值得注意的是，向量需要在世界坐标系中进行表示
 
+## 4. 基于高斯分布的深度滤波器
+基于高斯分布的深度滤波器的观测方程和预测方程如下：
+$$
+d_k = d_{k-1} +w_{k-1}
+$$
+
+$$
+d_{k} = f(p_1, p_2, \vec{t}) + v_{k}
+$$
+- $w$ 为过程噪声，其满足正态分布$P(0, \sigma)$
+- $v$ 为观测噪声，其满足正态分布$P(0, \sigma_{obs})$
+- $p_1$ 为参照点
+- $p_2$ 为重投影后的点
+- $\vec{t}$ 为相机1到相机2的位姿平移量
+ 
+对观测方程和预测方程进行融合可得最优后验估计如下：
+
+$$
+\hat d_{k} = \frac{\sigma_{obs}^2 d_{k-1} + \sigma ^2 f(p_1, p_2, \vec{t})}{\sigma_{obs}^2 +\sigma ^2}
+$$
+
+$$
+\sigma_{fuse} = \frac{\sigma^2 \sigma_{obs}^2}{\sigma^2 + \sigma_{obs}^2}
+$$
 
