@@ -6,6 +6,7 @@ set(POLAR_SEARCH_LIBRARY "polar_search")
 set(BLOCK_MATCH_LIBRARY "block_match")
 set(DEPTH_FILTER_LIBRARY "depth_filter")
 set(READ_DATASET_LIBRARY "read_dataset")
+set(TRIANGULATION_LIBRARY "triangulation")
 set(DEPEND_LIBRARY "depend_library")
 set(Sophus_LIBS "Sophus::Sophus")
 set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
@@ -19,10 +20,11 @@ set(
         ${DEPEND_LIBRARY}
 )
 
-include_directories(include)
+include_directories("include")
 
 find_package(Eigen3 REQUIRED)
-find_package(Sophus REQUIRED)
+find_package(Sophus REQUIRED COMPONENTS "Sophus")
+find_package(PCL 1.13 REQUIRED COMPONENTS "common" "io" "visualization")
 find_package(OpenCV REQUIRED)
 
 add_library(
@@ -36,11 +38,13 @@ target_include_directories(
         INTERFACE ${EIGEN3_INCLUDE_DIRS}
         INTERFACE ${OpenCV_INCLUDE_DIRS}
         INTERFACE ${Sophus_INCLUDE_DIRS}
+        INTERFACE ${PCL_INCLUDE_DIRS}
 )
 target_link_libraries(
         ${DEPEND_LIBRARY}
         INTERFACE ${OpenCV_LIBS}
         INTERFACE ${Sophus_LIBS}
+        INTERFACE ${PCL_LIBRARIES}
 )
 
 add_library(
@@ -78,6 +82,14 @@ target_link_libraries(
         ${READ_DATASET_LIBRARY}
         ${DEPEND_LIBRARY}
 )
+add_library(
+        ${TRIANGULATION_LIBRARY}
+        src/triangulation.cpp
+)
+target_link_libraries(
+        ${TRIANGULATION_LIBRARY}
+        ${DEPEND_LIBRARY}
+)
 
 add_executable(
         ${PROJECT_NAME}
@@ -91,3 +103,4 @@ target_link_libraries(
 message(STATUS "EIGEN3_INCLUDE_DIRS -- ${EIGEN3_INCLUDE_DIRS}")
 message(STATUS "OpenCV_INCLUDE_DIRS -- ${OpenCV_INCLUDE_DIRS}")
 message(STATUS "Sophus_INCLUDE_DIRS -- ${Sophus_INCLUDE_DIRS}")
+message(STATUS "PCL_INCLUDE_DIRS -- ${PCL_INCLUDE_DIRS}")

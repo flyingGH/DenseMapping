@@ -41,8 +41,17 @@ test_data
 └── README
 ```
 
+<div align="center">
+    <img src="figures/pose_data.png" width=80% title="images_pose.txt文件内容" alt="pose_data.png"/>
+</div>
+
 - 首先，感谢UZH开源的[REMODE数据集](https://download.ifi.uzh.ch/rpg/web/datasets/remode_test_data.zip)
 - 在此项目中我将`first_200_frames_traj_over_table_input_sequence.txt`重命名为`images_pose.txt`
+- `images_pose.txt`文件中的每行内容分别为 `图片文件名 tx ty tz qx qy qz qw`
+- `images_pose.txt`文件存储着相机中心位置在世界坐标系中的位姿，`tx ty tz`中存储的单位为米
+- `depthmaps`文件中存储的是对应图片中的深度信息，其单位为厘米
+- 因此值得注意的是，在进行三角测量时，需要进行单位统一
+
 
 ## 2. 极线搜索和块匹配技术
 
