@@ -6,12 +6,17 @@
 #include <se3.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "config.h"
+
 namespace dm
 {
     class ReadDatasetFiles
     {
     public:
-        ReadDatasetFiles() = default;
+        ReadDatasetFiles() : depth(HEIGHT, WIDTH, CV_64F)
+        {
+
+        }
 
         void operator()(const std::string &fp);
 
@@ -46,6 +51,10 @@ namespace dm
         }
 
     private:
+        void readPoses(const std::string &fp);
+
+        void readDepth(const std::string &fp);
+
         std::vector<std::string> imgFiles;
         std::vector<Sophus::SE3d> poseVec;
         cv::Mat depth;

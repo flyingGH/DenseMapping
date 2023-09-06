@@ -16,7 +16,9 @@ namespace dm
 
         DepthFilter() = delete;
 
-        DepthFilter(cv::Mat depth, cv::Mat depthConv) : depth(std::move(depth)), depthConv(std::move(depthConv))
+        DepthFilter(cv::Mat depth, cv::Mat depthConv) :
+                depth(std::move(depth)),
+                depthConv(std::move(depthConv))
         {
 
         }
@@ -24,7 +26,8 @@ namespace dm
         void operator()(
                 const Eigen::Vector2d &refPoint,
                 const Eigen::Vector3d &worldPoint,
-                const Sophus::SE3d &refPose
+                const Sophus::SE3d &refPose,
+                const double &sigmaM
         );
 
         cv::Mat &getDepth()

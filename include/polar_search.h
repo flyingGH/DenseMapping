@@ -6,15 +6,17 @@
 
 namespace dm
 {
+    class BlockMatch;
 
     class PolarSearch
     {
+        friend class BlockMatch;
+
     public:
         PolarSearch() = default;
 
         void operator()(
-                const Eigen::Vector2d refPoint,
-                const cv::Mat &refImg, const cv::Mat &currImg,
+                const Eigen::Vector2d &refPoint,
                 const Sophus::SE3d &refPose, const Sophus::SE3d &currPose
         );
 
@@ -30,6 +32,8 @@ namespace dm
 
     private:
         Eigen::Vector2d polarCoef;
+        Eigen::Vector2d pointStart;
+        Eigen::Vector2d pointEnd;
     };
 
 }
