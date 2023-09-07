@@ -1,71 +1,66 @@
-# <center>DenseMapping</center>
+# <center>DenseMapping</center> 
 
-使用REMODE数据集进行单目相机的稠密建图。该项目会涉及以下技术
+Dense mapping using monocular camera with REMODE dataset. This project will involve the following technologies:
 
-- 极线搜索和NCC块匹配技术
-- 建立几何不确定性模型
-- 基于高斯分布的深度滤波技术
-- 三角测量技术
+- Vanishing point search and NCC block matching techniques
+- Building geometric uncertainty models  
+- Depth filtering based on Gaussian distributions
+- Triangulation 
 
-涉及到的项目技术路线如下所示：
-
-<div align="center">
-<img src="./figures/flow_chart.png" width=70% title="技术路线流程图"/>
-</div>
+The technical roadmap of the project is as follows:
 
 <div align="center">
-<img src="./figures/flow_chart.png" width=70% title="C++项目路线图"/>
+<img src="./figures/flow_chart.en-US.png" width=70% title="C++ Project Roadmap"/>
 </div>
 
-## 1. 数据集格式解析
+## 1. Dataset Format Analysis
 
 ```shell
 test_data
-├── depthmaps                            # 图片深度信息文件夹
-│   ├── scene_000.depth
-│   ├── scene_001.depth
-│   ├── scene_002.depth
-│   ├── ...............
-│   ├── scene_198.depth
-│   ├── scene_199.depth
-│   └── scene_200.depth
-├── images_pose.txt                      # 存有所有图片的位姿信息
-├── images                               # 图片文件夹
-│   ├── scene_000.png
-│   ├── scene_001.png
-│   ├── scene_002.png
-│   ├── .............
-│   ├── scene_198.png
-│   ├── scene_199.png
-│   └── scene_200.png
+├── depthmaps                            # Depth image folder
+│   ├── scene_000.depth 
+│   ├── scene_001.depth
+│   ├── scene_002.depth
+│   ├── ...............
+│   ├── scene_198.depth
+│   ├── scene_199.depth
+│   └── scene_200.depth
+├── images_pose.txt                      # Pose info for all images  
+├── images                               # Image folder
+│   ├── scene_000.png
+│   ├── scene_001.png
+│   ├── scene_002.png
+│   ├── .............
+│   ├── scene_198.png
+│   ├── scene_199.png
+│   └── scene_200.png
 └── README
 ```
 
 <div align="center">
-    <img src="figures/pose_data.png" width=80% title="images_pose.txt文件内容" alt="pose_data.png"/>
+    <img src="figures/pose_data.png" width=80% title="contents of images_pose.txt file" alt="pose_data.png"/>
 </div>
 
-- 首先，感谢UZH开源的[REMODE数据集](https://download.ifi.uzh.ch/rpg/web/datasets/remode_test_data.zip)
-- 在此项目中我将`first_200_frames_traj_over_table_input_sequence.txt`重命名为`images_pose.txt`
-- `images_pose.txt`文件中的每行内容分别为 `图片文件名 tx ty tz qx qy qz qw`
-- `images_pose.txt`文件存储着相机中心位置在世界坐标系中的位姿，`tx ty tz`中存储的单位为米
-- `depthmaps`文件中存储的是对应图片中的深度信息，其单位为厘米
-- 因此值得注意的是，在进行三角测量时，需要进行单位统一
+- First, thank UZH for open-sourcing the [REMODE dataset](https://download.ifi.uzh.ch/rpg/web/datasets/remode_test_data.zip)
+- In this project, I renamed `first_200_frames_traj_over_table_input_sequence.txt` to `images_pose.txt`  
+- Each line in `images_pose.txt` contains `image_name tx ty tz qx qy qz qw`
+- `images_pose.txt` stores the camera center pose in world coordinates, with `tx ty tz` in meters
+- `depthmaps` stores the depth info for corresponding images, in cm
+- So note unit unification is needed when triangulating
 
-
-## 2. 极线搜索和块匹配技术
+## 2. Vanishing Point Search and Block Matching
 
 <div align="center">
-<img src="./figures/polarSearch.png" alt="polarSearch.png" title="对极几何" width=70%>
+<img src="./figures/polarSearch.png" alt="polarSearch.png" title="Epipolar Geometry" width=70%>
 </div>
 
-### 2.1 极线搜索法
+### 2.1 Vanishing Point Search
 $$
 E = [t]_{×}R
 $$
 
 $$
-F = K^{-T}EK^{-1}
+F = K^{-T}EK^{-1} 
 $$
 
 $$
@@ -75,20 +70,20 @@ $$
 $$
 l'X'= 0
 $$
-- $E$ 本质矩阵
-- $F$ 基础矩阵
-- $R$ 第二帧相机坐标系向第一帧相机坐标系的旋转矩阵
-- $t$ 第二帧相机坐标系向第一帧相机坐标系的平移向量在第二帧中的坐标
-- $[t]_{×}$ 平移向量的逆对称矩阵
-- $l'$ 极线防方程的权重参数
-- $X$ 第一帧像素坐标系中的其次坐标$[x, y, 1]$
-- $X'$第二帧像素坐标系中的其次坐标$[x' y' 1]$
+- $E$: Essential matrix
+- $F$: Fundamental matrix 
+- $R$: Rotation from frame 2 to frame 1
+- $t$: Translation from frame 2 to frame 1, in coordinates of frame 2
+- $[t]_{×}$: Skew symmetric matrix of translation vector
+- $l'$: Parameters of epipolar line equation
+- $X$: Homogeneous coordinates in image 1 $[x, y, 1]^T$
+- $X'$: Homogeneous coordinates in image 2 $[x', y', 1]^T$
 
-### 2.2 块匹配技术
-- 与光流法和直接法不同，以像素块的灰度不变性作为假设
-- 采用SVC，SSD或NCC作为评价像素块相似程度的指标（也可采用去均值的NCC，SVC，或SSD）
-- SVC，SSD的值越小，相似度越高，NCC值越大，相似度越高
-- 在极线上进行分块搜索，获取最优的像素深度的预测值（获取沿极线分布的评价相似性得分）
+### 2.2 Block Matching
+- Unlike optical flow and direct methods, it assumes gray value invariance of patches
+- Use SVC, SSD or NCC to evaluate patch similarity (mean-removed versions also work) 
+- Lower SVC, SSD indicates higher similarity, higher NCC means higher similarity
+- Search matches along epipolar lines, find best depth estimate (get similarity scores along epipolar line)
 
 $$
 S(A, B)_{SAD} = \sum_{i,j}|A(i, j) - B(i, j)|
@@ -102,14 +97,14 @@ $$
 S(A, B)_{NCC} = \frac{\sum_{i, j}A(i, j)B(i,j)}{\sqrt{\sum_{i, j}A(i, j) ^ 2 \sum_{i, j}B(i, j) ^ 2}}
 $$
 
-## 3. 几何不确定性模型
+## 3. Geometric Uncertainty Model
 
 <div align="center">
-<img src="./figures/disturbance_analysis.png" width=70% title="不确定性分析模型" alt="disturbance_analysis.png">
+<img src="./figures/disturbance_analysis.png" width=70% title="Uncertainty Analysis Model" alt="disturbance_analysis.png">
 </div>
 
 $$
-\alpha = \arccos<\vec{p}, \vec{t}>
+\alpha = \arccos<\vec{p}, \vec{t}> 
 $$
 
 $$
@@ -122,38 +117,125 @@ $$
 
 $$
 ||\vec{p'}|| = ||\vec{t}|| \frac{\sin\beta'}{\sin\gamma}
-$$
+$$ 
 
 $$
 \sigma_{obs} = ||\vec{p}|| - ||\vec{p'}||
 $$
 
-- 向量$O_2p_2$与归一化坐标系上的向量$O_2P_2$在相机坐标系下的方向是一致的
-- 可以使用向量$O_2P_2$代替向量$O_2p_2$对$\beta'$进行求解
-- 值得注意的是，向量需要在世界坐标系中进行表示
+- Vector $O_2p_2$ has same direction as normalized vector $O_2P_2$ in camera coordinates
+- Can use $O_2P_2$ instead of $O_2p_2$ to compute $\beta'$
+- Note vectors should be represented in world coordinates
 
-## 4. 基于高斯分布的深度滤波器
-基于高斯分布的深度滤波器的观测方程和预测方程如下：
+## 4. Depth Filtering Based on Gaussian Distributions 
+
+Prediction and observation equations for Gaussian depth filter:
+
 $$
 d_k = d_{k-1} +w_{k-1}
 $$
 
-$$
+$$ 
 d_{k} = f(p_1, p_2, \vec{t}) + v_{k}
 $$
-- $w$ 为过程噪声，其满足正态分布$P(0, \sigma)$
-- $v$ 为观测噪声，其满足正态分布$P(0, \sigma_{obs})$
-- $p_1$ 为参照点
-- $p_2$ 为重投影后的点
-- $\vec{t}$ 为相机1到相机2的位姿平移量
- 
-对观测方程和预测方程进行融合可得最优后验估计如下：
+- $w$: process noise ~ $N(0, \sigma)$
+- $v$: observation noise ~ $N(0, \sigma_{obs})$  
+- $p_1$: reference point
+- $p_2$: reprojected point
+- $\vec{t}$: pose translation from camera 1 to camera 2
+
+Fusing prediction and observation gives optimal posterior estimate:
 
 $$
 \hat d_{k} = \frac{\sigma_{obs}^2 d_{k-1} + \sigma ^2 f(p_1, p_2, \vec{t})}{\sigma_{obs}^2 +\sigma ^2}
 $$
 
 $$
-\sigma_{fuse} = \frac{\sigma^2 \sigma_{obs}^2}{\sigma^2 + \sigma_{obs}^2}
+\sigma_{fuse} = \frac{\sigma^2 \sigma_{obs}^2}{\sigma^2 + \sigma_{obs}^2} 
 $$
 
+
+## 5. Dependency 
+
+- [Eigen 3.4 Installation](https://gitlab.com/libeigen/eigen/-/releases/3.4.0)
+- [OpenCV 4.7.0 Installation](https://github.com/opencv/opencv/tree/4.7.0)
+- [Sophus 1.22.10 Installation](https://github.com/strasdat/Sophus/releases/tag/1.22.10) 
+- [PCL 1.13 Installation](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.13.1)
+
+
+## 6. Project Structure
+```shell
+DenseMapping
+├── CMakeLists.txt
+├── figures
+│   ├── cpp_class_desc.png
+│   ├── disturbance_analysis.png 
+│   ├── flow_chart.png
+│   ├── polarSearch.png
+│   ├── pose_data.png
+│   ├── result_iter0.png
+│   ├── result_iter1.png
+│   ├── result_iter2.png
+│   └── scene_000.png
+├── include
+│   ├── block_match.h                    # Header for BlockMatch
+│   ├── config.h                         # Project config
+│   ├── depth_filter.h                   # Header for DepthFilter
+│   ├── polar_search.h                   # Header for PolarSearch
+│   ├── read_dataset_files.h             # Header for ReadDatasetFiles
+│   └── triangulation.h                  # Header for Triangulation
+├── LICENSE
+├── README.md
+└── src
+    ├── block_match.cpp                  # Source for BlockMatch
+    ├── depth_filter.cpp                 # Source for DepthFilter
+    ├── main.cpp  
+    ├── polar_search.cpp                 # Source for PolarSearch
+    ├── read_dataset_files.cpp           # Source for ReadDatasetFiles
+    └── triangulation.cpp                # Source for Triangulation
+```
+
+<div align="center">
+<img src="./figures/cpp_class_desc.en-US.png" width=70% title="C++ Class Info"> 
+</div>
+
+
+## 7. Build and Run
+```shell
+mkdir build && mkdir result
+cd build 
+cmake ..
+cmake --build . --target dense_mapping
+cd bin
+./dense_mapping your_test_data_path 
+pcl_viewer ../../result/iter_0_result.pcd -ps 2.0
+```
+
+## 8. Results
+<table cellspacing="10" cellpadding="0" style="width: 100%; table-layout: fixed;">
+  <tr>
+    <td style="width: 25%;"><img src="./figures/img_depth_0.png" alt="result_iter0.png" style="max-width: 100%;" title="Depth result for image 0"></td>
+    <td style="width: 25%;"><img src="./figures/img_depth_9.png" alt="Image 2" style="max-width: 100%;" title="Depth result for image 9"></td>
+  </tr>
+  <tr>
+    <td style="width: 25%;"><img src="./figures/img_depth_19.png" alt="Image 3" style="max-width: 100%;" title="Depth result for image 19"></td>
+    <td style="width: 25%;"><img src="./figures/img_depth_29.png" alt="Image 4" style="max-width: 100%;" title="Depth result for image 29"></td>
+  </tr>
+  <tr>
+    <td style="width: 25%;"><img src="./figures/img_depth_39.png" alt="Image 3" style="max-width: 100%;" title="Depth result for image 39"></td>
+    <td style="width: 25%;"><img src="./figures/scene_000.png" alt="Image 4" style="max-width: 100%;" title="Scene layout"></td>
+  </tr>
+</table>
+
+## 9. Areas for Improvement
+
+- Block matching does not consider affine distortion from camera rotation
+- Depth does not strictly follow Gaussian distributions, needs more complex assumptions
+- Can assume inverse depth follows Gaussian, based on simulated inverse depth 
+- Adjacent pixel depths cannot vary too much
+- No explicit handling of mismatches
+- Efficiency issues, no parallelization 
+
+## 10. Limitations of Monocular Dense Mapping
+
+- Accuracy of block matching depends on angle between epipolar lines and image gradients, smaller angle means fewer mismatches

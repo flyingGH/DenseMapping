@@ -14,7 +14,6 @@
 #include "read_dataset_files.h"
 #include "triangulation.h"
 
-//void readFiles(const std::string &fp, std::vector<std::string> &imgFiles, std::vector<Sophus::SE3d> &poseVec);
 
 void oneIter(
         const std::vector<std::string> &imgFiles,
@@ -63,8 +62,9 @@ int main(int argc, const char *argv[])
             pclPoint.z = (float) worldPoint.z();
             cloud->push_back(pclPoint);
         }
-        fileName = "../result/iter_" + std::to_string(i) + "_result.pcd";
+        fileName = "../../result/iter_" + std::to_string(i) + "_result.pcd";
         pcl::io::savePCDFile(fileName, *cloud);
+        depthFilter.getWorldPoints().clear();
     }
     return 0;
 }
@@ -101,9 +101,16 @@ void oneIter(
 
                 depthFilter(refPixelPoint, worldPoint, refWorld2CamPose, sigmaM);
             }
+        if (idx == 1 || idx % 10 == 0) {
+            cv::imshow("origin img", refImg);
+            cv::imshow("img depth", depthFilter.getDepth() / 10);
+            cv::waitKey(0);
+            cv::destroyAllWindows();
+        }
 
         refImg = std::move(img);
         refWorld2CamPose = world2CamPose;
+
         std::cout << "图片: " + imgFiles[idx] << "处理完成" << std::endl;
     }
 

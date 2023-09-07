@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.15)
 project("dense_mapping" CXX)
 set(CMAKE_BUILD_TYPE "Release")
 
@@ -28,7 +28,7 @@ include_directories("include")
 find_package(Eigen3 REQUIRED)
 find_package(Sophus REQUIRED COMPONENTS "Sophus")
 find_package(PCL 1.13 REQUIRED COMPONENTS "common" "io" "visualization")
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.7.0 REQUIRED)
 
 add_library(
         ${DEPEND_LIBRARY} INTERFACE
@@ -51,7 +51,7 @@ target_link_libraries(
 )
 
 add_library(
-        ${POLAR_SEARCH_LIBRARY}
+        ${POLAR_SEARCH_LIBRARY} SHARED
         src/polar_search.cpp
 )
 target_link_libraries(
@@ -60,7 +60,7 @@ target_link_libraries(
 )
 
 add_library(
-        ${BLOCK_MATCH_LIBRARY}
+        ${BLOCK_MATCH_LIBRARY} SHARED
         src/block_match.cpp
 )
 target_link_libraries(
@@ -69,7 +69,7 @@ target_link_libraries(
 )
 
 add_library(
-        ${DEPTH_FILTER_LIBRARY}
+        ${DEPTH_FILTER_LIBRARY} SHARED
         src/depth_filter.cpp
 )
 target_link_libraries(
@@ -78,7 +78,7 @@ target_link_libraries(
 )
 
 add_library(
-        ${READ_DATASET_LIBRARY}
+        ${READ_DATASET_LIBRARY} SHARED
         src/read_dataset_files.cpp
 )
 target_link_libraries(
@@ -86,7 +86,7 @@ target_link_libraries(
         ${DEPEND_LIBRARY}
 )
 add_library(
-        ${TRIANGULATION_LIBRARY}
+        ${TRIANGULATION_LIBRARY} SHARED
         src/triangulation.cpp
 )
 target_link_libraries(

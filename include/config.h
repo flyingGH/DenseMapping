@@ -10,7 +10,7 @@ namespace dm
     const int WIDTH = 640;  // 图像宽度
     const int HEIGHT = 480;  // 图像高度
     const int WINDOW_SIZE = 3;  // 快搜索的窗口半径大小
-    const int ITERATIONS = 3;  // 建图循环次数
+    const int ITERATIONS = 1;  // 建图循环次数
 
     // 相机内参
     const double F_X = 481.2;
@@ -25,5 +25,5 @@ namespace dm
     const std::string MATCH_METHOD = "NCC"; // 块匹配方法定义 可选["SSD", "SAD", "NCC"]
     const int POLAR_GAP_PIXEL = 2;  // 极线搜索的间距，决定了建图的稠密程度
     const double NCC_MATCH_THRESHOLD = 0.85;  // 使用NCC方法块匹配的阈值
-    const double PREDICT_FUNC_SIGMA = 0.3;  // 深度滤波器观测方程中的初始标准差
+    const double PREDICT_FUNC_SIGMA = 3;  // 深度滤波器观测方程中的初始标准差
 }
