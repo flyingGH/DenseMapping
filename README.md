@@ -1,3 +1,8 @@
+<div>
+    <a href="./README.md">English</a>|
+    <a href="./README.zh-CN.md">简体中文</a>
+</div>
+
 # <center>DenseMapping</center> 
 
 Dense mapping using monocular camera with REMODE dataset. This project will involve the following technologies:

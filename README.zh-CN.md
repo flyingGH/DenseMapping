@@ -1,3 +1,8 @@
+<div>
+    <a href="./README.md">English</a>|
+    <a href="./README.zh-CN.md">简体中文</a>
+</div>
+
 # <center>DenseMapping</center>
 
 使用REMODE数据集进行单目相机的稠密建图。该项目会涉及以下技术
